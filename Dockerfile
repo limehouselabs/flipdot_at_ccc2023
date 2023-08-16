@@ -8,4 +8,4 @@ RUN poetry install
 
 COPY . .
 
-CMD [ "poetry", "run", "gunicorn", "-b 0.0.0.0:8000", "app:app"]
+CMD [ "poetry", "run", "gunicorn", "-b 0.0.0.0:8000", "--reload", "app:app"]
