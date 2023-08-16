@@ -11,6 +11,8 @@ import itertools
 import random
 import os
 
+HANOVER_WIDTH=84
+HANOVER_HEIGHT=7
 
 class Text:
     def __init__(self, string, invert=False):
@@ -200,7 +202,7 @@ def draw_console(image):
 @click.option("--fake", is_flag=True)
 def main(port, fake):
 
-    sign = HanoverSign(address=1, width=84, height=7)
+    sign = HanoverSign(address=1, width=HANOVER_WIDTH, height=HANOVER_HEIGHT)
 
     if not fake:
         ser = Serial(port)

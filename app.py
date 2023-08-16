@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, Response
 from pyflipdot.sign import HanoverSign
-from drawtext import Text, parse_messages
-import os
+from drawtext import Text, parse_messages, HANOVER_WIDTH, HANOVER_HEIGHT
+import os, string, logging
 
 app = Flask(__name__)
 
@@ -72,17 +72,47 @@ def list_images():
         images.append(image)
     return {"images": images}
 
+ok_names = set("-" + string.ascii_letters + string.digits)
+ok_content = set(["░", "█"])
+
+def is_only_characters_in_set(check_is_in, to_check):
+    return all([c in check_is_in for c in to_check])
+
 @app.route('/images/image/<name>', methods=('DELETE', 'PUT'))
 def modify_image(name):
+    if not is_only_characters_in_set(ok_names, name):
+        return "bad name", 400
+
     if request.method == 'PUT':
+        content = "\n".join([
+            "".join(["░" for _ in range(HANOVER_WIDTH)])
+            for _ in range(HANOVER_HEIGHT)
+        ])
+        if 'content' in request.form:
+            content = request.form['content']
+
+        lines = content.strip().split('\n')
+        lines = [l.strip() for l in lines]
+
+        if len(lines) != HANOVER_HEIGHT:
+            logging.warning(f"wrong height: { len(lines) }")
+            return "wrong height", 400
+
+        for l_number, l in enumerate(lines):
+            if len(l) != HANOVER_WIDTH:
+                logging.warning(f"line { l_number }, is wrong width: { len(l) }")
+                return "wrong width", 400
+
+            if not is_only_characters_in_set(ok_content, l.strip()):
+                logging.warning(f"bad content in line ({ l_number }): '{ l }'")
+                return "bad content", 400
+
         with open("images/%s.txt" % name, 'w') as f:
-            content = "\n".join([
-                "".join(["░" for _ in range(84)])
-                for _ in range(7)
-            ])
-            if 'content' in request.form:
-                content = request.form['content']
+            content = "\n".join(lines)
+            logging.warning(f"Added new file { name }")
+            logging.warning(f"\n{ content }")
             f.write(content)
+
     if request.method == 'DELETE':
         os.remove("images/%s.txt" % name)
     return list_images()
