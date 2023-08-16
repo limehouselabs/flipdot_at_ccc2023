@@ -1,0 +1,29 @@
+.flipdot {
+    border-spacing: 0px;
+}
+.flipdot .flipdot-cell {
+    padding: 0;
+    width: 11px;
+    height: 11px;
+    padding: 1px;
+    background: transparent;
+}
+
+.flipdot.flipdot--editable .flipdot-cell:hover {
+    background: yellow;
+}
+
+.flipdot-cell::after {
+    content: '';
+    display:block;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+}
+
+.flipdot-cell.flipdot-cell--true::after {
+    background: #000000;
+}
+.flipdot-cell.flipdot-cell--false::after {
+    background: #cccccc;
+}
