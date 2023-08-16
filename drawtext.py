@@ -26,6 +26,8 @@ class Text:
             return Noise().render(sign)
         elif self.string == "^^STARS^^":
             return Stars().render(sign)
+        elif self.string == "^^DIAMONDS^^":
+            return Diamonds().render(sign)
 
         font = Path(__file__).resolve().parent / "fonts" / "5x5.ttf"
 
@@ -74,6 +76,23 @@ class Stars:
         img [5::90, 1::8] = True
         img [6::90, 6::8] = True
         img [6::90, ::8] = True
+        return img
+
+
+class Diamonds:
+    def render(self, sign):
+        img = sign.create_image()
+        img [::90, 3::6] = True
+        img [1::90, 2::6] = True
+        img [1::90, 4::6] = True
+        img [2::90, 1::6] = True
+        img [2::90, 5::6] = True
+        img [3::90, ::6] = True
+        img [4::90, 1::6] = True
+        img [4::90, 5::6] = True
+        img [5::90, 2::6] = True
+        img [5::90, 4::6] = True
+        img [6::90, 3::6] = True
         return img
 
 
