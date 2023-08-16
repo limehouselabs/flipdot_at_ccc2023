@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, Response
 from pyflipdot.sign import HanoverSign
-from drawtext import Text, parse_messages, HANOVER_WIDTH, HANOVER_HEIGHT
+from drawtext import (
+    Text, parse_messages, get_images, get_specials,
+    HANOVER_WIDTH, HANOVER_HEIGHT
+)
 import os, string, logging
 
 app = Flask(__name__)
@@ -17,8 +20,8 @@ def render_screen(screen):
 
 def write_messages(messages):
     with open("messages.txt", "w") as f:
-        for message in messages:
-            f.write("%s;%s\n" % (message[0], message[1]))
+        for screen, delay in messages:
+            f.write(f"{ screen.save() };{ delay }\n")
 
 @app.route('/flipdot', methods=('GET', 'POST'))
 def index():
@@ -55,7 +58,9 @@ def index():
                 response='messages.txt is invalid', status=200,  mimetype="text/plain"
             )
 
-    return render_template('index.html', messages=raw_messages, previews=previews, error=error)
+    return render_template('index.html',
+        all_specials=get_specials(), messages=raw_messages,
+        previews=previews, error=error)
 
 @app.route('/images')
 def images():
@@ -64,12 +69,7 @@ def images():
 
 @app.route('/images/list')
 def list_images():
-    images = []
-    for name in os.listdir('images'):
-        image = {"name": name.split('.')[0]}
-        with open("images/%s" % name) as f:
-            image['content'] = f.read()
-        images.append(image)
+    images = get_images()
     return {"images": images}
 
 ok_names = set("-" + string.ascii_letters + string.digits)

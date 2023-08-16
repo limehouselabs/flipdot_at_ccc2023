@@ -31,6 +31,13 @@
 			<hr>
 		</pre>
 
+		<h4>Current specials:</h4>
+		<ul>
+{% for special in all_specials %}
+<li><pre style="font-family: monospace;">{{special}}</pre></li>
+{% endfor %}
+		</ul>
+
 		<script>
 			const textArea = document.querySelector("textarea");
 			const form = document.querySelector("form");

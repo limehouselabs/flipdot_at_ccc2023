@@ -14,7 +14,16 @@ import os
 HANOVER_WIDTH=84
 HANOVER_HEIGHT=7
 
-class Text:
+
+class Screen:
+    def save(self):
+        return f"^^{ self.__class__.__name__.upper() }^^"
+
+    def render(self, sign):
+        return
+
+
+class Text(Screen):
     def __init__(self, string, invert=False):
         self.string = string
         self.invert = invert
@@ -40,8 +49,11 @@ class Text:
     def __repr__(self):
         return '[Text("' + self.string + '")]'
 
+    def save(self):
+        return self.string
 
-class Stripes:
+
+class Stripes(Screen):
     def render(self, sign):
         img = sign.create_image()
         img[::3, ::3] = True
@@ -50,7 +62,7 @@ class Stripes:
         return img
 
 
-class Stars:
+class Stars(Screen):
     def render(self, sign):
         img = sign.create_image()
         img [0::90, ::8] = True
@@ -70,7 +82,7 @@ class Stars:
         return img
 
 
-class Diamonds:
+class Diamonds(Screen):
     def render(self, sign):
         img = sign.create_image()
         img [::90, 3::6] = True
@@ -87,18 +99,20 @@ class Diamonds:
         return img
 
 
-class Checkerboard:
+class Checkerboard(Screen):
     def render(self, sign):
         img = sign.create_image()
         img[::2, ::2] = True
         img[1::2, 1::2] = True
         return img
 
-class ImageFromFile:
-    def __init__(self, filename):
-        filename = f"images/{ filename }.txt"
 
-    def render(self, sign, name):
+class ImageFromFile(Screen):
+    def __init__(self, filename):
+        self.name = filename
+        self.filename = f"images/{ filename }.txt"
+
+    def render(self, sign):
         if not os.path.exists(self.filename):
             raise ValueError(f"Image not found: '{ self.filename }'")
         img = sign.create_image()
@@ -111,31 +125,63 @@ class ImageFromFile:
                    img[y][x] = data[y][x]
         return img
 
+    def save(self):
+        return f"^^{ self.name }^^"
 
-class Blank:
-    def __init__(self, value):
-        self.value = value
 
+class Empty(Screen):
     def render(self, sign):
         img = sign.create_image()
-        img.fill(self.value)
+        img.fill(0)
+        return img
+
+class Full(Screen):
+    def render(self, sign):
+        img = sign.create_image()
+        img.fill(1)
         return img
 
 
-class Noise:
+class Noise(Screen):
     def render(self, sign):
         img = sign.create_image()
         img[:] = np.random.choice(a=[False, True], size=img.shape)
         return img
 
+inbuilt = {
+    "STRIPES": Stripes(),
+    "CHECKERBOARD": Checkerboard(),
+    "EMPTY": Empty(),
+    "FULL": Full(),
+    "NOISE": Noise(),
+    "STARS": Stars(),
+    "DIAMONDS": Diamonds(),
+}
 
-class Random:
-    def __init__(self, options):
-        self.options = options
+class Random(Screen):
+    def __init__(self):
+        self.options = list(inbuilt.values())
 
     def render(self, sign):
-        rval = random.randint(0, len(self.options) - 1)
-        return self.options[rval].render(sign)
+        all_options = [ImageFromFile(i["name"]) for i in get_images()] + self.options
+        return random.choice(all_options).render(sign)
+
+inbuilt.update({"RANDOM": Random()})
+
+def get_images():
+    images = []
+    for name in os.listdir('images'):
+        image = {"name": name.split('.')[0]}
+        with open("images/%s" % name) as f:
+            image['content'] = f.read()
+        images.append(image)
+    return images
+
+def get_specials():
+    return (
+        [f"^^{ i['name'] }^^" for i in get_images()] +
+        [f"^^{ i }^^" for i in inbuilt.keys()]
+    )
 
 
 def progressive(text, invert=False, dwell=1, final_dwell=5):
@@ -152,6 +198,7 @@ def progressive(text, invert=False, dwell=1, final_dwell=5):
 #    transition,
 #]
 
+
 # Oh fuck it, it's hot
 def parse_messages(text):
     parsed = []
@@ -164,30 +211,12 @@ def parse_messages(text):
                 msg = line[:split].strip()
                 time = int(line[split+1:].strip())
 
-            if msg == "^^STRIPES^^":
-                screen = Stripes()
-            elif msg == "^^CHECKERBOARD^^":
-                screen = Checkerboard()
-            elif msg == "^^BLANK^^":
-                screen = Blank(0)
-            elif msg == "^^NOISE^^":
-                screen = Noise()
-            elif msg == "^^STARS^^":
-                screen = Stars()
-            elif msg == "^^DIAMONDS^^":
-                screen = Diamonds()
-            elif msg == "^^TRANSITION^^":
-                screen = Random([
-                    Stripes(),
-                    Stars(),
-                    Diamonds(),
-                    Checkerboard(),
-                    Blank(0),
-                    Blank(1),
-                    Noise(),
-                ])
-            elif msg.startswith("^^") and msg.endswith("^^"):
-                screen = ImageFromFile(msg)
+            if msg.startswith("^^") and msg.endswith("^^"):
+                key = msg.replace("^", "")
+                if key in inbuilt:
+                    screen = inbuilt[key]
+                else:
+                    screen = ImageFromFile(key)
             else:
                 screen = Text(msg)
 

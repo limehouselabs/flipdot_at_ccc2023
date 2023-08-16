@@ -1,4 +1,17 @@
-2 hot 2 live;2
-2 hydrated 2 die;2
-Beer at 1900;5
-^^TRANSITION^^;1
+^^DUCKS^^;1
+^^EMF-BOLD^^;1
+^^EXAMPLE^^;1
+^^PACMAN^^;1
+^^STRIPES^^;1
+^^CHECKERBOARD^^;1
+^^EMPTY^^;1
+^^FULL^^;1
+^^NOISE^^;1
+^^STARS^^;1
+^^DIAMONDS^^;1
+Next is random:;1
+^^RANDOM^^;1
+test?;1
+beer!;1
+ü crit!;1
+;;);1
