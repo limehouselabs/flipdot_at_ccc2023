@@ -19,6 +19,19 @@ function App() {
         });
     }, []);
 
+    onDelete = function onDelete(name) {
+        fetch('/images/image/' + name, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).then(function (response) {
+            return response.json();
+        }).then(function (response) {
+            return setImages(response.images);
+        });
+    };
+
     if (images === null) {
         return React.createElement(
             'div',
@@ -68,23 +81,39 @@ function App() {
                         ),
                         React.createElement(
                             'button',
-                            null,
+                            { onClick: function onClick() {
+                                    return onDelete(name);
+                                } },
                             'Delete'
                         )
                     )
                 );
             })
         ),
-        React.createElement(AddImage, null)
+        React.createElement(AddImage, { onChange: setImages })
     );
 }
 
-function AddImage() {
+function AddImage(_ref2) {
+    var onChange = _ref2.onChange;
+
     var _React$useState3 = React.useState(""),
         _React$useState4 = _slicedToArray(_React$useState3, 2),
         name = _React$useState4[0],
         setName = _React$useState4[1];
 
+    var onClick = function onClick() {
+        fetch('/images/image/' + name, {
+            method: 'PUT',
+            headers: {
+                'Accept': 'application/json'
+            }
+        }).then(function (response) {
+            return response.json();
+        }).then(function (response) {
+            return onChange(response.images);
+        });
+    };
     return React.createElement(
         'div',
         null,
@@ -93,18 +122,14 @@ function AddImage() {
             null,
             'Add image'
         ),
+        React.createElement('input', { placeholder: 'Image name', type: 'text', value: name, onChange: function onChange(_ref3) {
+                var value = _ref3.target.value;
+                return setName(value.toUpperCase());
+            } }),
         React.createElement(
-            'form',
-            null,
-            React.createElement('input', { placeholder: 'Image name', type: 'text', value: name, onChange: function onChange(_ref2) {
-                    var value = _ref2.target.value;
-                    return setName(value.toUpperCase());
-                } }),
-            React.createElement(
-                'button',
-                null,
-                'Add new image'
-            )
+            'button',
+            { onClick: onClick },
+            'Add new image'
         )
     );
 }

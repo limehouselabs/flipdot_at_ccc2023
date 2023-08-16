@@ -55,6 +55,7 @@ def index():
 def images():
     return render_template('images.html')
 
+
 @app.route('/images/list')
 def list_images():
     images = []
@@ -64,3 +65,17 @@ def list_images():
             image['content'] = f.read()
         images.append(image)
     return {"images": images}
+
+@app.route('/images/image/<name>', methods=('DELETE', 'PUT'))
+def modify_image(name):
+    images = []
+    if request.method == 'PUT':
+        with open("images/%s.txt" % name, 'w') as f:
+            content = "\n".join([
+                "".join(["░" for _ in range(84)])
+                for _ in range(7)
+            ])
+            f.write(content)
+    if request.method == 'DELETE':
+        os.remove("images/%s.txt" % name)
+    return list_images()
