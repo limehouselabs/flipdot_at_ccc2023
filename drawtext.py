@@ -95,8 +95,6 @@ def progressive(text, invert=False, dwell=1, final_dwell=5):
         this_text = text[: i + 1] + text[i+1:].translate(trans)
         yield (Text(this_text, invert), this_dwell)
 
-transition = (Random([Checkerboard(), Blank(0), Blank(1), Noise()]), 2)
-
 #queue = [
 #    (Text("CURRENT BEER"), 5),
 #    (Text("MYSTERY PILS"), 5),
@@ -141,7 +139,11 @@ def main(port, fake):
     while True:
         with open("messages.txt") as f:
             queue = [(Text(item[0]), item[1]) for item in parse_messages(f.read())]
-            queue.append(transition)
+            if queue[-1][0].string == "^^TRANSITION^^":
+                queue[-1] = (
+                    Random([Checkerboard(), Blank(0), Blank(1), Noise()]),
+                    queue[-1][1]
+                )
 
         for item, wait in queue:
             image = item.render(sign)
