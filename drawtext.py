@@ -11,6 +11,7 @@ import itertools
 import random
 import os
 
+
 class Text:
     def __init__(self, string, invert=False):
         self.string = string
@@ -29,6 +30,16 @@ class Text:
             return Stars().render(sign)
         elif self.string == "^^DIAMONDS^^":
             return Diamonds().render(sign)
+        elif self.string == "^^TRANSITION^^":
+            return Random([
+                Stripes(),
+                Stars(),
+                Diamonds(),
+                Checkerboard(),
+                Blank(0),
+                Blank(1),
+                Noise(),
+            ]).render(sign)
         elif self.string.startswith("^^"):
             return ImageFromFile().render(sign, self.string[2:-2])
 
@@ -119,7 +130,6 @@ class ImageFromFile:
             for y in range(7):
                 for x in range(84):
                    img[y][x] = data[y][x]
-            print(data)
         return img
 
 
