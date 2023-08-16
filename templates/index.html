@@ -42,14 +42,31 @@
 
 				return true;
 			});
+			
+			let timeout = null;
+			let waitTime = 5000;
 
 			const reloadIfNotModified = function () {
+				if (timeout) {
+					clearTimeout(timeout);
+				}
+
 				if (!focused && !textChanged) {
 					return window.location.reload(1);
 				}
 
-				setTimeout(reloadIfNotModified, 5000);
+				waitTime *= 1.2
+
+				timeout = setTimeout(reloadIfNotModified, waitTime);
 			}
+			
+			document.addEventListener("visibilitychange", () => {
+				if (!document.hidden) {
+					reloadIfNotModified()
+				}
+			});
+				
+			timeout = setTimeout(reloadIfNotModified, waitTime);
 		</script>
 	</body>
 </html>
