@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 from pyflipdot.sign import HanoverSign
 from drawtext import Text, parse_messages
+import os
 
 app = Flask(__name__)
 
@@ -53,3 +54,13 @@ def index():
 @app.route('/images')
 def images():
     return render_template('images.html')
+
+@app.route('/images/list')
+def list_images():
+    images = []
+    for name in os.listdir('images'):
+        image = {"name": name.split('.')[0]}
+        with open("images/%s" % name) as f:
+            image['content'] = f.read()
+        images.append(image)
+    return {"images": images}
