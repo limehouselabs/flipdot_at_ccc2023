@@ -16,6 +16,15 @@ class Text:
         self.invert = invert
 
     def render(self, sign):
+        if self.string == "^^STRIPES^^":
+            return Stripes().render(sign)
+        elif self.string == "^^CHECKERBOARD^^":
+            return Checkerboard().render(sign)
+        elif self.string == "^^BLANK^^":
+            return Blank(0).render(sign)
+        elif self.string == "^^NOISE^^":
+            return Noise().render(sign)
+
         font = Path(__file__).resolve().parent / "fonts" / "5x5.ttf"
 
         pil_font = ImageFont.truetype(str(font), size=10, encoding="unic")
@@ -35,6 +44,14 @@ class Text:
 
     def __repr__(self):
         return '[Text("' + self.string + '")]'
+
+class Stripes:
+    def render(self, sign):
+        img = sign.create_image()
+        img[::3, ::3] = True
+        img[1::3, 1::3] = True
+        img[2::3, 2::3] = True
+        return img
 
 
 class Checkerboard:
