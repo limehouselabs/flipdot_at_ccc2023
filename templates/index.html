@@ -1,0 +1,28 @@
+<html>
+	<head>
+		<link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/dejavu-sans-mono" type="text/css">
+		<style>
+		pre {
+		  font-family: DejaVuSansMonoBold;
+		}
+		</style>
+	</head>
+	<body>
+		{% if error %}
+		<h1>{{error}}</h1>
+		{% endif %}
+		<p>Format: message;time\n</p>
+		<form method=POST>
+			<textarea name="messages" cols=30 rows=10>{{messages}}</textarea>
+			<br>
+			<button type="submit">MAKE IT SO</button>
+		<form>
+
+		<h4>Flipdot currently sez:</h4>
+		<pre>
+{% for preview in previews %}
+{{preview}}
+{% endfor %}
+		</pre>
+	</body>
+</html>
