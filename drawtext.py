@@ -24,6 +24,8 @@ class Text:
             return Blank(0).render(sign)
         elif self.string == "^^NOISE^^":
             return Noise().render(sign)
+        elif self.string == "^^STARS^^":
+            return Stars().render(sign)
 
         font = Path(__file__).resolve().parent / "fonts" / "5x5.ttf"
 
@@ -45,12 +47,33 @@ class Text:
     def __repr__(self):
         return '[Text("' + self.string + '")]'
 
+
 class Stripes:
     def render(self, sign):
         img = sign.create_image()
         img[::3, ::3] = True
         img[1::3, 1::3] = True
         img[2::3, 2::3] = True
+        return img
+
+
+class Stars:
+    def render(self, sign):
+        img = sign.create_image()
+        img [0::90, ::8] = True
+        img [0::90, 6::8] = True
+        img [1::90, 1::8] = True
+        img [1::90, 5::8] = True
+        img [2::90, 2::8] = True
+        img [2::90, 4::8] = True
+        img [3::90, ::] = True
+        img [3::90, 7::8] = False
+        img [4::90, 4::8] = True
+        img [4::90, 2::8] = True
+        img [5::90, 5::8] = True
+        img [5::90, 1::8] = True
+        img [6::90, 6::8] = True
+        img [6::90, ::8] = True
         return img
 
 
