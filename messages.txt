@@ -1,3 +1,4 @@
 2 hot 2 live;2
 2 hydrated 2 die;2
+^^EXAMPLE^^;2
 Beer at 1900;5

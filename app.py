@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, Response
 from pyflipdot.sign import HanoverSign
 from drawtext import Text, parse_messages
 import os
@@ -46,8 +46,14 @@ def index():
 
     else:
         raw_messages = open("messages.txt").read()
-        messages = parse_messages(raw_messages)
-        previews = [render_message(item[0]) for item in messages]
+        try:
+            messages = parse_messages(raw_messages)
+            previews = [render_message(item[0]) for item in messages]
+        except Exception as e:
+            print(e)
+            return Response(
+                response='messages.txt is invalid', status=200,  mimetype="text/plain"
+            )
 
     return render_template('index.html', messages=raw_messages, previews=previews, error=error)
 

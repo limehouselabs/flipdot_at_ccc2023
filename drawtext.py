@@ -9,6 +9,7 @@ import time
 import click
 import itertools
 import random
+import os
 
 class Text:
     def __init__(self, string, invert=False):
@@ -28,6 +29,8 @@ class Text:
             return Stars().render(sign)
         elif self.string == "^^DIAMONDS^^":
             return Diamonds().render(sign)
+        elif self.string.startswith("^^"):
+            return ImageFromFile().render(sign, self.string[2:-2])
 
         font = Path(__file__).resolve().parent / "fonts" / "5x5.ttf"
 
@@ -101,6 +104,22 @@ class Checkerboard:
         img = sign.create_image()
         img[::2, ::2] = True
         img[1::2, 1::2] = True
+        return img
+
+class ImageFromFile:
+    def render(self, sign, name):
+        file_name = "images/%s.txt" % name
+        if not os.path.exists(file_name):
+            raise ValueError("Image not found: %s" % name)
+        img = sign.create_image()
+        with open(file_name) as f:
+            data = [
+                [c == "█" for c in list(r)] for r in f.read().splitlines()
+            ]
+            for y in range(7):
+                for x in range(84):
+                   img[y][x] = data[y][x]
+            print(data)
         return img
 
 
