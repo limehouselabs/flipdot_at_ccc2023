@@ -51,10 +51,12 @@ function Image({name, content, setImages}) {
     const [editState, setEditState] = React.useState("view");
     const [editableContent, setEditableContent] = React.useState("");
 
+    const url = '/images/image/'+name;
+
     React.useEffect(() => setEditableContent(content), [content]);
 
     onDelete = () => {
-        fetch('/images/image/'+name, {
+        fetch(url, {
             method: 'DELETE',
             headers: {
                 'Accept': 'application/json',
@@ -68,7 +70,7 @@ function Image({name, content, setImages}) {
         setEditState('saving');
         let body = new FormData();
         body.append('content', editableContent);
-        fetch('/images/image/'+name, {
+        fetch(url, {
             method: 'PUT',
             body,
             headers: {
@@ -81,34 +83,39 @@ function Image({name, content, setImages}) {
             setImages(response.images);
         })
     }
+    
     return <tr>
         <td>
             {name}<br />
             {editState === "view" && <button onClick={() => setEditState('edit')}>Edit</button>}
-            {editState === "edit" && <button onClick={onSave}>Save</button>}
+            {editState === "view" && <button onClick={() => setEditState('edit_text')}>Edit (Text)</button>}
+            {(editState === "edit" || editState === "edit_text") && <button onClick={onSave}>Save</button>}
             {editState === "saving" && <div>Saving...</div>}
             <br />
             <button onClick={() => onDelete()}>Delete</button>
         </td>
         <td>
-            <ImageEditor content={editableContent} onChange={setEditableContent} editable={editState === "edit"} />
+            <ImageEditor content={editableContent} onChange={setEditableContent} editable={editState === "edit"} useText={editState === "edit_text"} />
         </td>
     </tr>;
 }
 
-function ImageEditor({editable, content, onChange}) {
-    const contentAsArray = React.useMemo(() => {
-        return content.split("\n").map(r => r.split('').map(c => c === "█"));   
-    }, [content]);
-    console.log(contentAsArray);
+function ImageEditor({editable, content, onChange, useText}) {
+    const toArray = (inputString) => inputString.split("\n").map(r => r.split('').map(c => c === "█"));
+    const toString = (inputArray) => inputArray.map(r => r.map(c => c ? "█" : "░").join("")).join("\n");
 
+    const contentAsArray = React.useMemo(() => toArray(content), [content]);
     const onChangeInternal = (x, y) => {
         if (!editable) {
             return;
         }
-        let newContent = [...contentAsArray];
+        const newContent = [...contentAsArray];
         newContent[y][x] = !newContent[y][x];
-        onChange(newContent.map(r => r.map(c => c ? "█" : "░").join("")).join("\n"));
+        onChange(toString(newContent));
+    }
+
+    if (useText) {
+        return <textarea rows={7} cols={84} onChange={e => onChange(e.target.value)}>{toString(contentAsArray)}</textarea>
     }
 
     return <table className={"flipdot "+(editable ? "flipdot--editable": "")}>

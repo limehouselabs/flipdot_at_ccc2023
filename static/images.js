@@ -105,12 +105,14 @@ function Image(_ref4) {
         editableContent = _React$useState8[0],
         setEditableContent = _React$useState8[1];
 
+    var url = '/images/image/' + name;
+
     React.useEffect(function () {
         return setEditableContent(content);
     }, [content]);
 
     onDelete = function onDelete() {
-        fetch('/images/image/' + name, {
+        fetch(url, {
             method: 'DELETE',
             headers: {
                 'Accept': 'application/json'
@@ -126,7 +128,7 @@ function Image(_ref4) {
         setEditState('saving');
         var body = new FormData();
         body.append('content', editableContent);
-        fetch('/images/image/' + name, {
+        fetch(url, {
             method: 'PUT',
             body: body,
             headers: {
@@ -139,6 +141,7 @@ function Image(_ref4) {
             setImages(response.images);
         });
     };
+
     return React.createElement(
         'tr',
         null,
@@ -154,7 +157,14 @@ function Image(_ref4) {
                     } },
                 'Edit'
             ),
-            editState === "edit" && React.createElement(
+            editState === "view" && React.createElement(
+                'button',
+                { onClick: function onClick() {
+                        return setEditState('edit_text');
+                    } },
+                'Edit (Text)'
+            ),
+            (editState === "edit" || editState === "edit_text") && React.createElement(
                 'button',
                 { onClick: onSave },
                 'Save'
@@ -176,7 +186,7 @@ function Image(_ref4) {
         React.createElement(
             'td',
             null,
-            React.createElement(ImageEditor, { content: editableContent, onChange: setEditableContent, editable: editState === "edit" })
+            React.createElement(ImageEditor, { content: editableContent, onChange: setEditableContent, editable: editState === "edit", useText: editState === "edit_text" })
         )
     );
 }
@@ -184,29 +194,45 @@ function Image(_ref4) {
 function ImageEditor(_ref5) {
     var editable = _ref5.editable,
         content = _ref5.content,
-        onChange = _ref5.onChange;
+        _onChange = _ref5.onChange,
+        useText = _ref5.useText;
 
-    var contentAsArray = React.useMemo(function () {
-        return content.split("\n").map(function (r) {
+    var toArray = function toArray(inputString) {
+        return inputString.split("\n").map(function (r) {
             return r.split('').map(function (c) {
                 return c === "█";
             });
         });
-    }, [content]);
-    console.log(contentAsArray);
+    };
+    var toString = function toString(inputArray) {
+        return inputArray.map(function (r) {
+            return r.map(function (c) {
+                return c ? "█" : "░";
+            }).join("");
+        }).join("\n");
+    };
 
+    var contentAsArray = React.useMemo(function () {
+        return toArray(content);
+    }, [content]);
     var onChangeInternal = function onChangeInternal(x, y) {
         if (!editable) {
             return;
         }
         var newContent = [].concat(_toConsumableArray(contentAsArray));
         newContent[y][x] = !newContent[y][x];
-        onChange(newContent.map(function (r) {
-            return r.map(function (c) {
-                return c ? "█" : "░";
-            }).join("");
-        }).join("\n"));
+        _onChange(toString(newContent));
     };
+
+    if (useText) {
+        return React.createElement(
+            'textarea',
+            { rows: 7, cols: 84, onChange: function onChange(e) {
+                    return _onChange(e.target.value);
+                } },
+            toString(contentAsArray)
+        );
+    }
 
     return React.createElement(
         'table',
