@@ -24,5 +24,32 @@
 {{preview}}
 {% endfor %}
 		</pre>
+
+		<script>
+			const textArea = document.querySelector("textarea");
+			const form = document.querySelector("form");
+
+			let focused = false;
+			let textChanged = false;
+
+			textArea.addEventListener("focus", () => (focused = true));
+			textArea.addEventListener("blur", () => (focused = false));
+			textArea.addEventListener("change", () => (textChanged = true));
+
+			form.addEventListener("submit", () => {
+				focused = false;
+				textChanged = false;
+
+				return true;
+			});
+
+			const reloadIfNotModified = function () {
+				if (!focused && !textChanged) {
+					return window.location.reload(1);
+				}
+
+				setTimeout(reloadIfNotModified, 5000);
+			}
+		</script>
 	</body>
 </html>
