@@ -5,11 +5,11 @@ import os, string, logging
 
 app = Flask(__name__)
 
-sign = HanoverSign(address=1, width=84, height=7)
+sign = HanoverSign(address=1, width=HANOVER_WIDTH, height=HANOVER_HEIGHT)
 
-def render_message(text):
+def render_screen(screen):
     rendered = ""
-    for row in Text(text).render(sign):
+    for row in screen.render(sign):
         for col in row:
             rendered += "█" if col else " "
         rendered += "\n"
@@ -29,14 +29,14 @@ def index():
         try:
             parsed_messages = parse_messages(raw_messages)
         except Exception as e:
-            print(e)
+            logging.warning(e)
             error = "NO. Bad format. Use good format."
             pass
 
         try:
-            previews = [render_message(item[0]) for item in parsed_messages]
+            previews = [render_screen(item[0]) for item in parsed_messages]
         except Exception as e:
-            print(e)
+            logging.error(e)
             error = "NO. Messages too long. Use less characters."
             pass
 
@@ -48,9 +48,9 @@ def index():
         raw_messages = open("messages.txt").read()
         try:
             messages = parse_messages(raw_messages)
-            previews = [render_message(item[0]) for item in messages]
+            previews = [render_screen(item[0]) for item in messages]
         except Exception as e:
-            print(e)
+            logging.error(e)
             return Response(
                 response='messages.txt is invalid', status=200,  mimetype="text/plain"
             )

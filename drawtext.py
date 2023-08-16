@@ -20,31 +20,6 @@ class Text:
         self.invert = invert
 
     def render(self, sign):
-        if self.string == "^^STRIPES^^":
-            return Stripes().render(sign)
-        elif self.string == "^^CHECKERBOARD^^":
-            return Checkerboard().render(sign)
-        elif self.string == "^^BLANK^^":
-            return Blank(0).render(sign)
-        elif self.string == "^^NOISE^^":
-            return Noise().render(sign)
-        elif self.string == "^^STARS^^":
-            return Stars().render(sign)
-        elif self.string == "^^DIAMONDS^^":
-            return Diamonds().render(sign)
-        elif self.string == "^^TRANSITION^^":
-            return Random([
-                Stripes(),
-                Stars(),
-                Diamonds(),
-                Checkerboard(),
-                Blank(0),
-                Blank(1),
-                Noise(),
-            ]).render(sign)
-        elif self.string.startswith("^^"):
-            return ImageFromFile().render(sign, self.string[2:-2])
-
         font = Path(__file__).resolve().parent / "fonts" / "5x5.ttf"
 
         pil_font = ImageFont.truetype(str(font), size=10, encoding="unic")
@@ -120,17 +95,19 @@ class Checkerboard:
         return img
 
 class ImageFromFile:
+    def __init__(self, filename):
+        filename = f"images/{ filename }.txt"
+
     def render(self, sign, name):
-        file_name = "images/%s.txt" % name
-        if not os.path.exists(file_name):
-            raise ValueError("Image not found: %s" % name)
+        if not os.path.exists(self.filename):
+            raise ValueError(f"Image not found: '{ self.filename }'")
         img = sign.create_image()
-        with open(file_name) as f:
+        with open(self.filename) as f:
             data = [
                 [c == "█" for c in list(r)] for r in f.read().splitlines()
             ]
-            for y in range(7):
-                for x in range(84):
+            for y in range(HANOVER_HEIGHT):
+                for x in range(HANOVER_WIDTH):
                    img[y][x] = data[y][x]
         return img
 
@@ -186,7 +163,35 @@ def parse_messages(text):
             if split != -1:
                 msg = line[:split].strip()
                 time = int(line[split+1:].strip())
-            parsed.append((msg, time))
+
+            if msg == "^^STRIPES^^":
+                screen = Stripes()
+            elif msg == "^^CHECKERBOARD^^":
+                screen = Checkerboard()
+            elif msg == "^^BLANK^^":
+                screen = Blank(0)
+            elif msg == "^^NOISE^^":
+                screen = Noise()
+            elif msg == "^^STARS^^":
+                screen = Stars()
+            elif msg == "^^DIAMONDS^^":
+                screen = Diamonds()
+            elif msg == "^^TRANSITION^^":
+                screen = Random([
+                    Stripes(),
+                    Stars(),
+                    Diamonds(),
+                    Checkerboard(),
+                    Blank(0),
+                    Blank(1),
+                    Noise(),
+                ])
+            elif msg.startswith("^^") and msg.endswith("^^"):
+                screen = ImageFromFile(msg)
+            else:
+                screen = Text(msg)
+
+            parsed.append((screen, time))
     return parsed
 
 def draw_console(image):
@@ -211,12 +216,7 @@ def main(port, fake):
 
     while True:
         with open("messages.txt") as f:
-            queue = [(Text(item[0]), item[1]) for item in parse_messages(f.read())]
-            if queue[-1][0].string == "^^TRANSITION^^":
-                queue[-1] = (
-                    Random([Checkerboard(), Blank(0), Blank(1), Noise()]),
-                    queue[-1][1]
-                )
+            queue = parse_messages(f.read())
 
         for item, wait in queue:
             image = item.render(sign)
