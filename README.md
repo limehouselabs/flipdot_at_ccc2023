@@ -14,3 +14,11 @@ in a separate terminal:
 ```
 
 navigate to [localhost:8000/flipdot](http://localhost:8000/flipdot)
+
+# Compile JSX
+
+If you touch anything in the js folder, run this:
+
+```
+npx babel --watch js --out-dir static --presets react-app/prod
+```

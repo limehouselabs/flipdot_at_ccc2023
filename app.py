@@ -49,3 +49,7 @@ def index():
         previews = [render_message(item[0]) for item in messages]
 
     return render_template('index.html', messages=raw_messages, previews=previews, error=error)
+
+@app.route('/images')
+def images():
+    return render_template('images.html')

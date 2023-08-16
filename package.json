@@ -1,0 +1,24 @@
+{
+  "name": "flipdot_at_ccc2023",
+  "version": "1.0.0",
+  "description": "## Useage",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/limehouselabs/flipdot_at_ccc2023.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/limehouselabs/flipdot_at_ccc2023/issues"
+  },
+  "homepage": "https://github.com/limehouselabs/flipdot_at_ccc2023#readme",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-react-app": "^3.1.2"
+  }
+}
