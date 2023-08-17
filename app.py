@@ -72,7 +72,7 @@ def list_images():
     images = get_images()
     return {"images": images}
 
-ok_names = set("-" + string.ascii_letters + string.digits)
+ok_names = set("-" + "/" + string.ascii_letters + string.digits)
 ok_content = set(["░", "█"])
 
 def is_only_characters_in_set(check_is_in, to_check):

@@ -13,6 +13,7 @@ import os
 
 HANOVER_WIDTH=84
 HANOVER_HEIGHT=7
+MIN_FRAME_TIME=0.2
 
 
 class Screen:
@@ -168,13 +169,22 @@ class Random(Screen):
 
 inbuilt.update({"RANDOM": Random()})
 
+
+def parse_image_file(name):
+    image = {"name": name.split('.')[0]}
+    with open("images/%s" % name) as f:
+        image['content'] = f.read()
+    return image
+
+
 def get_images():
     images = []
     for name in os.listdir('images'):
-        image = {"name": name.split('.')[0]}
-        with open("images/%s" % name) as f:
-            image['content'] = f.read()
-        images.append(image)
+        if os.path.isdir(f"images/{ name }"):
+            for subname in os.listdir(f"images/{ name }"):
+                images.append(parse_image_file(f"{ name }/{ subname }"))
+        else:
+            images.append(parse_image_file(name))
     return images
 
 def get_specials():
@@ -214,13 +224,17 @@ def parse_messages(text):
             if msg.startswith("^^") and msg.endswith("^^"):
                 key = msg.replace("^", "")
                 if key in inbuilt:
-                    screen = inbuilt[key]
+                    parsed.append((inbuilt[key], time))
+                elif os.path.isdir(f"images/{ key }"):
+                    raw_frames = os.listdir(f"images/{ key }")
+                    time = max([time/len(raw_frames), MIN_FRAME_TIME])
+                    for frame in sorted(raw_frames):
+                        file_suffix = f"{ key }/{ frame.removesuffix('.txt') }"
+                        parsed.append((ImageFromFile(file_suffix), time))
                 else:
-                    screen = ImageFromFile(key)
+                    parsed.append((ImageFromFile(key), time))
             else:
                 screen = Text(msg)
-
-            parsed.append((screen, time))
     return parsed
 
 def draw_console(image):
