@@ -54,6 +54,49 @@ class Text(Screen):
         return self.string
 
 
+class ImageFromFile(Screen):
+    def __init__(self, filename):
+        self.name = filename
+        self.filename = f"images/{ filename }.txt"
+
+    def render(self, sign):
+        if not os.path.exists(self.filename):
+            raise ValueError(f"Image not found: '{ self.filename }'")
+        img = sign.create_image()
+        with open(self.filename) as f:
+            data = [
+                [c == "█" for c in list(r)] for r in f.read().splitlines()
+            ]
+            for y in range(HANOVER_HEIGHT):
+                for x in range(HANOVER_WIDTH):
+                   img[y][x] = data[y][x]
+        return img
+
+    def save(self):
+        return f"^^{ self.name }^^"
+
+
+class Animation:
+    def __init__(self, name):
+        self.name = name
+        self.dir_name = f"images/{ name }"
+        self.n_frames = len(os.listdir(self.dir_name))
+
+    def image_name_from_frame(self, frame):
+        return f"{ self.name }/{ frame.removesuffix('.txt') }"
+
+    def save(self):
+        return f"^^{ self.name }^^"
+
+    def render_next(self, sign):
+        for frame in os.listdir(self.dir_name):
+            image = ImageFromFile(self.image_name_from_frame(frame))
+            yield image.render(sign)
+
+    def render(self, sign):
+        return ImageFromFile(self.image_name_from_frame(os.listdir(self.dir_name)[0])).render(sign)
+
+
 class Stripes(Screen):
     def render(self, sign):
         img = sign.create_image()
@@ -106,28 +149,6 @@ class Checkerboard(Screen):
         img[::2, ::2] = True
         img[1::2, 1::2] = True
         return img
-
-
-class ImageFromFile(Screen):
-    def __init__(self, filename):
-        self.name = filename
-        self.filename = f"images/{ filename }.txt"
-
-    def render(self, sign):
-        if not os.path.exists(self.filename):
-            raise ValueError(f"Image not found: '{ self.filename }'")
-        img = sign.create_image()
-        with open(self.filename) as f:
-            data = [
-                [c == "█" for c in list(r)] for r in f.read().splitlines()
-            ]
-            for y in range(HANOVER_HEIGHT):
-                for x in range(HANOVER_WIDTH):
-                   img[y][x] = data[y][x]
-        return img
-
-    def save(self):
-        return f"^^{ self.name }^^"
 
 
 class Empty(Screen):
@@ -219,20 +240,24 @@ def parse_messages(text):
             time = 5
             if split != -1:
                 msg = line[:split].strip()
-                time = int(line[split+1:].strip())
+                # time = int(line[split+1:].strip())
+                time = float(line[split+1:].strip())
 
             if msg.startswith("^^") and msg.endswith("^^"):
                 key = msg.replace("^", "")
                 if key in inbuilt:
                     parsed.append((inbuilt[key], time))
+
                 elif os.path.isdir(f"images/{ key }"):
-                    raw_frames = os.listdir(f"images/{ key }")
-                    time = max([time/len(raw_frames), MIN_FRAME_TIME])
-                    for frame in sorted(raw_frames):
-                        file_suffix = f"{ key }/{ frame.removesuffix('.txt') }"
-                        parsed.append((ImageFromFile(file_suffix), time))
+                    parsed.append((Animation(key), time))
+                    # raw_frames = os.listdir(f"images/{ key }")
+                    # time = max([time/len(raw_frames), MIN_FRAME_TIME])
+                    # for frame in sorted(raw_frames):
+                    #     file_suffix = f"{ key }/{ frame.removesuffix('.txt') }"
+                    #     parsed.append((ImageFromFile(file_suffix), time))
                 else:
                     parsed.append((ImageFromFile(key), time))
+
             else:
                 screen = Text(msg)
     return parsed
@@ -262,11 +287,19 @@ def main(port, fake):
             queue = parse_messages(f.read())
 
         for item, wait in queue:
-            image = item.render(sign)
-            if not fake:
-                controller.draw_image(image)
-            draw_console(image)
-            time.sleep(wait)
+            if type(item) is Animation:
+                frame_wait = max([wait/item.n_frames, MIN_FRAME_TIME])
+                for image in item.render_next(sign):
+                    if not fake:
+                        controller.draw_image(image)
+                    draw_console(image)
+                    time.sleep(frame_wait)
+            else:
+                image = item.render(sign)
+                if not fake:
+                    controller.draw_image(image)
+                draw_console(image)
+                time.sleep(wait)
 
 if __name__ == "__main__":
     main()
